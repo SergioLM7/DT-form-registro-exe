@@ -1,0 +1,208 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+//import { useNavigate } from 'react-router-dom';
+import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+
+import axios from 'axios';
+
+
+const Form = () => {
+  const { register, handleSubmit, formState: { errors }, reset } = useForm();
+  const [confirmationMessage, setConfirmationMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const URL = import.meta.env.VITE_API_URL;
+  //const navigate = useNavigate();
+
+
+  const checkSubmission = async (data) => {
+    if (data.carrera === "Educación Primaria") {
+      if (data.nota_media >= 7) {
+        if (data.nivel_ingles === "C1" || data.nivel_ingles === "C2") {
+          const response = await axios.post(`${URL}/api/candidatos`, data);
+          console.log(response);
+        } else {
+          handleRejection(data);
+        }
+      } else {
+        handleRejection(data);
+      }
+
+    } else if (data.carrera !== "Educación Primaria") {
+      if (data.nota_media >= 6) {
+        if (data.nivel_ingles === "B2" || data.nivel_ingles === "C1" || data.nivel_ingles === "C2") {
+          try {
+            const response = await axios.post(`${URL}/api/candidatos`, data);
+            console.log(response);
+          } catch (error) {
+            console.log(error)
+            if (error.response && error.response.data.message) {
+              setConfirmationMessage(`Error: ${error.response.data.message}`);
+            } else {
+              setConfirmationMessage('Error al registrar el usuario.');
+            }
+          }
+
+        } else {
+          handleRejection(data);
+        }
+      } else {
+        handleRejection(data);
+      }
+    }
+
+  };
+
+  const handleRejection = async (data) => {
+    console.log('No cumples con los requisitos mínimos');
+    setTimeout(async () => {
+      await sendRejectionEmail(data);
+    }, 2000);
+  };
+
+  //86400000  - 24horas
+
+  const sendRejectionEmail = async (data) => {
+    const {email_candidato, nombre_candidato} = data;
+    try {
+      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Empieza por Educar', message: `Estimado ${nombre_candidato}, ¿cómo estás? Agradecemos tu interés en nuestro proyecto Empieza por Educar. Pero, lamentándolo mucho, no hemos aceptado tu solicitud de inscripción debido a que no cumples con los requisitos mínimos de nota media en la carrera y nivel de inglés que tenemos establecidos. Esperamos poder colaborar en algún otro proyecto contigo. Un saludo y que tengas un feliz día` });
+      console.log('Correo de rechazo enviado');
+    } catch (error) {
+      console.error('Error al enviar el correo de rechazo:', error);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    const edad = parseInt(data.edad, 10);
+    const nota_media = parseFloat(data.nota_media);
+    data.edad = edad;
+    data.nota_media= nota_media;
+    console.log(data);
+
+    try {
+      setTimeout(() => {
+        checkSubmission(data);
+        setConfirmationMessage('Candidatura registrada correctamente');
+      }, 2000);
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setConfirmationMessage('');
+        reset();
+      }, 3000);
+     
+    } catch (error) {
+      console.log(error)
+      if (error.response && error.response.data.message) {
+        setConfirmationMessage(`Error: ${error.response.data.message}`);
+      } else {
+        setConfirmationMessage('Error al registrar el usuario.');
+      }
+    }
+  };
+
+  return (
+    <>
+      <section className='register-candidato'>
+        <h3>¡Te estamos esperando!</h3>
+        {confirmationMessage ? (confirmationMessage && (
+          <div className="confirmation">
+            {confirmationMessage === 'Candidatura registrada correctamente' ? (
+              <FaCheckCircle color="green" size={34} />
+            ) : (
+              <FaExclamationCircle color="red" size={34} />
+            )}
+            <p>{confirmationMessage}</p>
+          </div>
+        )) : (
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <input type="text" {...register('nombre_candidato', {
+              required: 'El nombre es obligatorio', pattern: {
+                value: /^[A-Za-zÁÉÍÓÚáéíóúÀÈÌÒÙàèìòùÂÊÎÔÛâêîôûÄËÏÖÜäëïöüÿÇçÑñ\s'-]+$/i
+                , message: 'El nombre solo admite letras'
+              }, minLength: { value: 2, message: 'El nombre debe tener más de 2 letras' }, maxLength: { value: 70, message: 'El nombre debe tener menos de 70 caracteres' }
+            })} placeholder="Nombre" />
+            {errors.nombre_candidato && <p>{errors.nombre_candidato.message}</p>}
+
+            <input type="text" {...register('apellidos_candidato', {
+              required: 'El/los apellido/s son obligatorios', pattern: {
+                value: /^[A-Za-zÁÉÍÓÚáéíóúÀÈÌÒÙàèìòùÂÊÎÔÛâêîôûÄËÏÖÜäëïöüÿÇçÑñ\s'-]+$/i
+                , message: 'Apellidos solo admite letras'
+              }, minLength: { value: 2, message: 'Apellidos/o debe tener más de 3 letras' }, maxLength: { value: 70, message: 'Apellidos/o debe tener menos de 70 caracteres' }
+            })} placeholder="Apellido" />
+            {errors.apellido_candidato && <p>{errors.apellido_candidato.message}</p>}
+
+            {/*<select {...register('sexo', { required: 'Sexo es obligatorio' })}>
+            }  <option value="">--Selecciona--</option>
+              <option value="Hombre">Hombre</option>
+              <option value="Mujer">Mujer</option>
+              <option value="No binario">No binario</option>
+              <option value="Género fluido">Género fluido</option>
+              <option value="Queer">Queer</option>
+              <option value="Poligénero">Poligénero</option>
+              <option value="Agénero">Agénero</option>
+              <option value="Bigénero">Bigénero</option>
+            </select>
+            {errors.sexo && <p>{errors.sexo.message}</p>}*/}
+
+            <input type="email" {...register('email_candidato', { required: 'El email es obligatorio', pattern: { value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/i, message: 'El email introducido no tiene el formato necesario' }, minLength: { value: 6, message: 'El email debe tener más de 6 caracteres' }, maxLength: { value: 100, message: 'El email no puede tener más de 100 caracteres' } })} placeholder="Email" />
+            {errors.email_candidato && <p>{errors.email_candidato.message}</p>}
+
+            <input type="text" {...register('telefono_candidato', { required: 'El teléfono es obligatorio', pattern: { value: /^\+?\d{1,4}[-. ]?\d{1,4}[-. ]?\d{1,4}[-. ]?\d{1,9}$|^\+?\d{1,15}$/, message: 'El formato del teléfono no es válido' }, minLength: { value: 9, message: 'El teléfono debe tener, al menos, 9 caracteres' }, maxLength: { value: 20, message: 'El teléfono debe tener, máximo, 20 caracteres' } })} placeholder="Teléfono" />
+            {errors.telefono_candidato && <p>{errors.telefono_candidato.message}</p>}
+
+            <input type="number" {...register('edad', { required: 'La edad es obligatoria', min: { value: 19, message: 'Debes ser mayor de 18 años' }, max: { value: 65, message: 'Debes tener menos de 65 años' } })} placeholder="Edad" />
+            {errors.edad && <p>{errors.edad.message}</p>}
+
+            <select {...register('carrera', { required: 'Carrera es obligatoria' })}>
+              <option value="">--Selecciona--</option>
+              <option value="Educación Infantil">Educación Infantil</option>
+              <option value="Educación Primaria">Educación Primaria</option>
+              <option value="Pedagogía">Pedagogía</option>
+              <option value="Educación Social">Educación Social</option>
+              <option value="Psicopedagogía">Psicopedagogía</option>
+              <option value="Enseñanza de Lenguas Extranjeras">Enseñanza de Lenguas Extranjeras</option>
+              <option value="Educación Física">Educación Física</option>
+              <option value="Derecho">Derecho</option>
+              <option value="Medicina">Medicina</option>
+              <option value="Ingeniería Informática">Ingeniería Informática</option>
+              <option value="Psicología">Psicología</option>
+              <option value="Economía">Economía</option>
+              <option value="Administración y Dirección de Empresas">Administración y Dirección de Empresas</option>
+              <option value="Biología">Biología</option>
+              <option value="Enfermería">Enfermería</option>
+              <option value="Arquitectura">Arquitectura</option>
+              <option value="Periodismo">Periodismo</option>
+              <option value="Matemáticas">Matemáticas</option>
+              <option value="Ingeniería Informática">Ingeniería Informática</option>
+              <option value="Física">Física</option>
+            </select>
+            {errors.carrera && <p>{errors.carrera.message}</p>}
+
+            <input type="number" step="0.1" min="0" max="10"{...register('nota_media', {
+              required: 'La nota media es obligatoria', pattern: {
+                value: /^(10(\.0)?|[0-9](\.[0-9])?)$/, message: 'La nota media debe ser un número decimal entre 0 y 10'
+              }
+            })} placeholder="Nota media de la carrera" />
+            {errors.nota_media && <p>{errors.nota_media.message}</p>}
+
+            <select {...register('nivel_ingles', { required: 'El nivel de inglés es obligatorio' })}>
+              <option value="">--Selecciona--</option>
+              <option value="A1">A1</option>
+              <option value="A2">A2</option>
+              <option value="B1">B1</option>
+              <option value="B2">B2</option>
+              <option value="C1">C1</option>
+              <option value="C2">C2</option>
+            </select>
+            {errors.nivel_ingles && <p>{errors.nivel_ingles.message}</p>}
+
+            <button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Registrando...' : 'Registrar candidatura'}</button>
+          </form>
+        )}
+      </section>
+    </>
+  );
+};
+
+export default Form;

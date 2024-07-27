@@ -1,0 +1,78 @@
+@import "../utils/variables.scss";
+@import "../utils/mixins.scss";
+
+
+
+.register-candidato {
+  width: 70%;
+  max-width: 500px;
+  min-height: 30vh;
+  @include column;
+  @include centered-content;
+  border: solid 2px black;
+  border-radius: 4px;
+  background-color: white;
+  gap: 20px;
+  margin: 20px 0 20px 0;
+
+  &>h3 {
+    max-width: 90%;
+    text-align: center;
+    padding: 20px 0;
+    margin: 10px 0 0 0;
+    flex-shrink: 0
+  }
+
+  &>.confirmation {
+    @include column;
+    @include centered-content;
+    gap: 20px;
+    text-align: center;
+  }
+
+  &>form {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 0 20px;
+    width: 100%;
+    height: 60%;
+    box-sizing: border-box;
+    background-color: transparent;
+    @include column;
+    @include centered-content;
+    margin-bottom: 10px;
+
+    input,
+    select {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 12px;
+      border: 1px solid $verde;
+      border-radius: 4px;
+      box-sizing: border-box;
+      color: black;
+    }
+
+    button[type="submit"] {
+      background-color: $verde;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      border-radius: 4px;
+      padding: 8px;
+      border: transparent;
+      margin-bottom: 10px;
+
+      &:hover {
+        background-color: $amarillo;
+      }
+    }
+
+    p {
+      color: $red;
+      margin: 0 0 12px;
+      font-size: 0.9rem;
+      font-weight: bolder;
+    }
+  }
+}

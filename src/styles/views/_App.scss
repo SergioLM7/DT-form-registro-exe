@@ -1,0 +1,23 @@
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+body {
+    font-family: "Lato", sans-serif;
+    font-optical-sizing: auto;
+    font-weight: bold;
+    font-style: normal;
+}
+
+#root {
+    //Configuración de layout
+    display: flex;
+    flex-direction: column; //Header-Main-Footer formarán una columna
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+    color: black;
+}

@@ -1,0 +1,59 @@
+@import "../utils/variables.scss";
+@import "../utils/mixins.scss";
+
+
+.footerStyle {
+
+    @include column;
+    @include centered-content;
+
+    bottom: 0;
+    min-height: 10vh;
+    width: 100%;
+    background-color: $verde;
+    padding: 20px 0;
+    color: white;
+    font-size: 14px;
+
+    &>.redes {
+        display: flex;
+        @include centered-content;
+        max-width: 90%;
+        justify-content: space-between;
+        margin-bottom: 5px;
+
+        &>a {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+            padding-bottom: 5px;
+            @include column;
+            @include centered-content;
+
+
+            &>img {
+                width: 30%;
+
+            }
+        }
+    }
+
+    &>p {
+        max-width: 80%;
+        text-align: center;
+    }
+}
+
+
+
+
+/*@media screen and (min-width: $desktop-breakpoint) {
+    .footerStyle {
+      margin-top: 150px; 
+      max-height: calc(100vh - 120px); 
+      & > p {
+        max-width: 80%;
+        text-align: center;
+      }
+    }
+}*/
