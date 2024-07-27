@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-//import { useNavigate } from 'react-router-dom';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 
 import axios from 'axios';
@@ -11,45 +10,37 @@ const Form = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const URL = import.meta.env.VITE_API_URL;
-  //const navigate = useNavigate();
 
 
   const checkSubmission = async (data) => {
-    if (data.carrera === "Educación Primaria") {
-      if (data.nota_media >= 7) {
-        if (data.nivel_ingles === "C1" || data.nivel_ingles === "C2") {
-          const response = await axios.post(`${URL}/api/candidatos`, data);
-          console.log(response);
+    if (data.carrera === "Educación Primaria" && data.nota_media >= 7 && (data.nivel_ingles === "C1" || data.nivel_ingles === "C2")) {
+      try {
+        const response = await axios.post(`${URL}/api/candidatos`, data);
+        console.log(response);
+      } catch (error) {
+        console.log(error)
+        if (error.response && error.response.data.message) {
+          setConfirmationMessage(`Error: ${error.response.data.message}`);
         } else {
-          handleRejection(data);
+          setConfirmationMessage('Error al registrar la candidatura. Inténtelo de nuevo.');
         }
-      } else {
-        handleRejection(data);
       }
 
-    } else if (data.carrera !== "Educación Primaria") {
-      if (data.nota_media >= 6) {
-        if (data.nivel_ingles === "B2" || data.nivel_ingles === "C1" || data.nivel_ingles === "C2") {
-          try {
-            const response = await axios.post(`${URL}/api/candidatos`, data);
-            console.log(response);
-          } catch (error) {
-            console.log(error)
-            if (error.response && error.response.data.message) {
-              setConfirmationMessage(`Error: ${error.response.data.message}`);
-            } else {
-              setConfirmationMessage('Error al registrar el usuario.');
-            }
-          }
-
+    } else if (data.carrera !== "Educación Primaria" && data.nota_media >= 6 && (data.nivel_ingles === "B2" || data.nivel_ingles === "C1" || data.nivel_ingles === "C2")) {
+      try {
+        const response = await axios.post(`${URL}/api/candidatos`, data);
+        console.log(response);
+      } catch (error) {
+        console.log(error)
+        if (error.response && error.response.data.message) {
+          setConfirmationMessage(`Error: ${error.response.data.message}`);
         } else {
-          handleRejection(data);
+          setConfirmationMessage('Error al registrar la candidatura. Inténtelo de nuevo.');
         }
-      } else {
-        handleRejection(data);
       }
+    } else {
+      handleRejection(data);
     }
-
   };
 
   const handleRejection = async (data) => {
@@ -59,12 +50,12 @@ const Form = () => {
     }, 2000);
   };
 
-  //86400000  - 24horas
+  //86400000  - 24horas (sería la configuración definitiva para evitar que el candidato lo perciba como una respuesta automática)
 
   const sendRejectionEmail = async (data) => {
-    const {email_candidato, nombre_candidato} = data;
+    const { nombre_candidato, email_candidato} = data;
     try {
-      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Empieza por Educar', message: `Estimado ${nombre_candidato}, ¿cómo estás? Agradecemos tu interés en nuestro proyecto Empieza por Educar. Pero, lamentándolo mucho, no hemos aceptado tu solicitud de inscripción debido a que no cumples con los requisitos mínimos de nota media en la carrera y nivel de inglés que tenemos establecidos. Esperamos poder colaborar en algún otro proyecto contigo. Un saludo y que tengas un feliz día` });
+      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato});
       console.log('Correo de rechazo enviado');
     } catch (error) {
       console.error('Error al enviar el correo de rechazo:', error);
@@ -76,27 +67,27 @@ const Form = () => {
     const edad = parseInt(data.edad, 10);
     const nota_media = parseFloat(data.nota_media);
     data.edad = edad;
-    data.nota_media= nota_media;
+    data.nota_media = nota_media;
     console.log(data);
 
     try {
       setTimeout(() => {
         checkSubmission(data);
         setConfirmationMessage('Candidatura registrada correctamente');
-      }, 2000);
+      }, 3000);
 
       setTimeout(() => {
         setIsSubmitting(false);
         setConfirmationMessage('');
         reset();
-      }, 3000);
-     
+      }, 5000);
+
     } catch (error) {
       console.log(error)
       if (error.response && error.response.data.message) {
         setConfirmationMessage(`Error: ${error.response.data.message}`);
       } else {
-        setConfirmationMessage('Error al registrar el usuario.');
+        setConfirmationMessage('Error al registrar la candidatura');
       }
     }
   };
