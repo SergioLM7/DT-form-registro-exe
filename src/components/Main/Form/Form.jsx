@@ -178,7 +178,7 @@ const Form = () => {
                 , message: 'Apellidos solo admite letras'
               }, minLength: { value: 2, message: 'Apellidos/o debe tener más de 3 letras' }, maxLength: { value: 70, message: 'Apellidos/o debe tener menos de 70 caracteres' }
             })} placeholder="Apellido" />
-            {errors.apellido_candidato && <p>{errors.apellido_candidato.message}</p>}
+            {errors.apellidos_candidato && <p>{errors.apellidos_candidato.message}</p>}
 
             <select {...register('sexo', { required: 'Sexo es obligatorio' })}>
               <option value="">--Sexo--</option>
