@@ -1,21 +1,32 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { storage, ref, uploadBytes, getDownloadURL } from '../../../firebase';
+import axios from 'axios';
 import { FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
 
-import axios from 'axios';
 
 
 const Form = () => {
   const { register, handleSubmit, formState: { errors }, reset } = useForm();
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [file, setFile] = useState(null);
   const URL = import.meta.env.VITE_API_URL;
 
 
+  //Función que establece si el candidato cumple con los criterios mínimos de admisión
+  //De ser así, lo guarda en la base de datos (incluida la URL de su currículum); si no, le envía un email de rechazo
   const checkSubmission = async (data) => {
     if (data.carrera === "Educación Primaria" && data.nota_media >= 7 && (data.nivel_ingles === "C1" || data.nivel_ingles === "C2")) {
       try {
-        const response = await axios.post(`${URL}/api/candidatos`, data);
+        if (!file) {
+          setConfirmationMessage('Por favor, selecciona un archivo PDF.');
+          return;
+        }
+
+        const cvURL = await uploadFile(file);
+        const payload = { ...data, cv: cvURL };
+        const response = await axios.post(`${URL}/api/candidatos`, payload);
         console.log(response);
       } catch (error) {
         console.log(error)
@@ -28,7 +39,14 @@ const Form = () => {
 
     } else if (data.carrera !== "Educación Primaria" && data.nota_media >= 6 && (data.nivel_ingles === "B2" || data.nivel_ingles === "C1" || data.nivel_ingles === "C2")) {
       try {
-        const response = await axios.post(`${URL}/api/candidatos`, data);
+        if (!file) {
+          setConfirmationMessage('Por favor, selecciona un archivo PDF.');
+          return;
+        }
+
+        const filePath = await uploadFile(file);
+        const payload = { ...data, cv: filePath };
+        const response = await axios.post(`${URL}/api/candidatos`, payload);
         console.log(response);
       } catch (error) {
         console.log(error)
@@ -43,8 +61,45 @@ const Form = () => {
     }
   };
 
+  //Funiciones para gestionar la carga del archivo PDF del CV
+  //La primera recoge el archivo del formulario y la segunda lo sube a Firebase Storage
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      if (selectedFile.type !== 'application/pdf') {
+        setError('Solo se permiten archivos PDF.');
+        return;
+      }
+      if (selectedFile.size > 5 * 1024 * 1024) { // 5MB
+        setError('El archivo debe ser menor de 5 MB.');
+        return;
+      }
+      setFile(selectedFile);
+    }
+  };
+
+  const uploadFile = async (file) => {
+    if (!file) return null;
+
+    const timestamp = new Date().getTime();
+    console.log(timestamp)
+    const uniqueFileName = `${timestamp}_${file.name}`;
+    const fileRef = ref(storage, `curriculums/${uniqueFileName}`);
+
+    try {
+      await uploadBytes(fileRef, file);
+      console.log('Archivo subido con éxito');
+      const downloadURL = await getDownloadURL(fileRef);
+      console.log(downloadURL)
+      return downloadURL; 
+    } catch (error) {
+      console.error('Error al subir el archivo:', error);
+      throw error;
+    }
+  };
+
+  //Función que gestiona qué ocurre cuando la solicitud no cumple con los requisitos mínimos
   const handleRejection = async (data) => {
-    console.log('No cumples con los requisitos mínimos');
     setTimeout(async () => {
       await sendRejectionEmail(data);
     }, 2000);
@@ -52,16 +107,18 @@ const Form = () => {
 
   //86400000  - 24horas (sería la configuración definitiva para evitar que el candidato lo perciba como una respuesta automática)
 
+  //Función que gestiona el envío del email de rechazo de la solicitud
   const sendRejectionEmail = async (data) => {
-    const { nombre_candidato, email_candidato} = data;
+    const { nombre_candidato, email_candidato } = data;
     try {
-      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato});
+      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
       console.log('Correo de rechazo enviado');
     } catch (error) {
       console.error('Error al enviar el correo de rechazo:', error);
     }
   };
 
+  //Función que gestiona el submit del formulario
   const onSubmit = async (data) => {
     setIsSubmitting(true);
     const edad = parseInt(data.edad, 10);
@@ -123,8 +180,8 @@ const Form = () => {
             })} placeholder="Apellido" />
             {errors.apellido_candidato && <p>{errors.apellido_candidato.message}</p>}
 
-            {/*<select {...register('sexo', { required: 'Sexo es obligatorio' })}>
-            }  <option value="">--Selecciona--</option>
+            <select {...register('sexo', { required: 'Sexo es obligatorio' })}>
+              <option value="">--Sexo--</option>
               <option value="Hombre">Hombre</option>
               <option value="Mujer">Mujer</option>
               <option value="No binario">No binario</option>
@@ -134,7 +191,7 @@ const Form = () => {
               <option value="Agénero">Agénero</option>
               <option value="Bigénero">Bigénero</option>
             </select>
-            {errors.sexo && <p>{errors.sexo.message}</p>}*/}
+            {errors.sexo && <p>{errors.sexo.message}</p>}
 
             <input type="email" {...register('email_candidato', { required: 'El email es obligatorio', pattern: { value: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/i, message: 'El email introducido no tiene el formato necesario' }, minLength: { value: 6, message: 'El email debe tener más de 6 caracteres' }, maxLength: { value: 100, message: 'El email no puede tener más de 100 caracteres' } })} placeholder="Email" />
             {errors.email_candidato && <p>{errors.email_candidato.message}</p>}
@@ -146,7 +203,7 @@ const Form = () => {
             {errors.edad && <p>{errors.edad.message}</p>}
 
             <select {...register('carrera', { required: 'Carrera es obligatoria' })}>
-              <option value="">--Selecciona--</option>
+              <option value="">--Carrera--</option>
               <option value="Educación Infantil">Educación Infantil</option>
               <option value="Educación Primaria">Educación Primaria</option>
               <option value="Pedagogía">Pedagogía</option>
@@ -167,6 +224,7 @@ const Form = () => {
               <option value="Matemáticas">Matemáticas</option>
               <option value="Ingeniería Informática">Ingeniería Informática</option>
               <option value="Física">Física</option>
+              <option value="Otra">Otra</option>
             </select>
             {errors.carrera && <p>{errors.carrera.message}</p>}
 
@@ -178,7 +236,7 @@ const Form = () => {
             {errors.nota_media && <p>{errors.nota_media.message}</p>}
 
             <select {...register('nivel_ingles', { required: 'El nivel de inglés es obligatorio' })}>
-              <option value="">--Selecciona--</option>
+              <option value="">--Nivel de inglés--</option>
               <option value="A1">A1</option>
               <option value="A2">A2</option>
               <option value="B1">B1</option>
@@ -187,6 +245,9 @@ const Form = () => {
               <option value="C2">C2</option>
             </select>
             {errors.nivel_ingles && <p>{errors.nivel_ingles.message}</p>}
+
+            <input type="file" accept=".pdf" onChange={handleFileChange} required/>
+            {errors.curriculum && <p>{errors.curriculum.message}</p>}
 
             <button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Registrando...' : 'Registrar candidatura'}</button>
           </form>
