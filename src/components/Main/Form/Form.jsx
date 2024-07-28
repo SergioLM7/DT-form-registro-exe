@@ -91,7 +91,7 @@ const Form = () => {
       console.log('Archivo subido con éxito');
       const downloadURL = await getDownloadURL(fileRef);
       console.log(downloadURL)
-      return downloadURL; 
+      return downloadURL;
     } catch (error) {
       console.error('Error al subir el archivo:', error);
       throw error;
@@ -152,7 +152,6 @@ const Form = () => {
   return (
     <>
       <section className='register-candidato'>
-        <h3>¡Te estamos esperando!</h3>
         {confirmationMessage ? (confirmationMessage && (
           <div className="confirmation">
             {confirmationMessage === 'Candidatura registrada correctamente' ? (
@@ -162,7 +161,8 @@ const Form = () => {
             )}
             <p>{confirmationMessage}</p>
           </div>
-        )) : (
+        )) : (<>
+          <h3>¡Te estamos esperando!</h3>
           <form onSubmit={handleSubmit(onSubmit)}>
             <input type="text" {...register('nombre_candidato', {
               required: 'El nombre es obligatorio', pattern: {
@@ -246,12 +246,12 @@ const Form = () => {
             </select>
             {errors.nivel_ingles && <p>{errors.nivel_ingles.message}</p>}
 
-            <input type="file" accept=".pdf" onChange={handleFileChange} required/>
+            <input type="file" accept=".pdf" onChange={handleFileChange} required />
             {errors.curriculum && <p>{errors.curriculum.message}</p>}
 
             <button type="submit" disabled={isSubmitting}>{isSubmitting ? 'Registrando...' : 'Registrar candidatura'}</button>
           </form>
-        )}
+        </>)}
       </section>
     </>
   );
