@@ -11,7 +11,7 @@ const Form = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState(null);
-  const URL = import.meta.env.VITE_API_URL;
+  const URL = /*import.meta.env.VITE_API_URL ||*/ 'http://localhost:3000';
 
 
   //Función que establece si el candidato cumple con los criterios mínimos de admisión
@@ -111,7 +111,7 @@ const Form = () => {
   const sendRejectionEmail = async (data) => {
     const { nombre_candidato, email_candidato } = data;
     try {
-      await axios.post(`${URL}/api/confirmacion-candidato`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
+      await axios.post(`${URL}/api/mailing/candidatos`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
       console.log('Correo de rechazo enviado');
     } catch (error) {
       console.error('Error al enviar el correo de rechazo:', error);
@@ -209,20 +209,22 @@ const Form = () => {
               <option value="Pedagogía">Pedagogía</option>
               <option value="Educación Social">Educación Social</option>
               <option value="Psicopedagogía">Psicopedagogía</option>
-              <option value="Enseñanza de Lenguas Extranjeras">Enseñanza de Lenguas Extranjeras</option>
+              <option value="Filología">Filología</option>
               <option value="Educación Física">Educación Física</option>
               <option value="Derecho">Derecho</option>
               <option value="Medicina">Medicina</option>
-              <option value="Ingeniería Informática">Ingeniería Informática</option>
+              <option value="Informática">Informática</option>
               <option value="Psicología">Psicología</option>
               <option value="Economía">Economía</option>
-              <option value="Administración y Dirección de Empresas">Administración y Dirección de Empresas</option>
+              <option value="ADE">ADE</option>
               <option value="Biología">Biología</option>
               <option value="Enfermería">Enfermería</option>
               <option value="Arquitectura">Arquitectura</option>
               <option value="Periodismo">Periodismo</option>
               <option value="Matemáticas">Matemáticas</option>
-              <option value="Ingeniería Informática">Ingeniería Informática</option>
+              <option value="Filosofía">Filosofía</option>
+              <option value="Sociología">Sociología</option>
+              <option value="Química">Química</option>
               <option value="Física">Física</option>
               <option value="Otra">Otra</option>
             </select>
