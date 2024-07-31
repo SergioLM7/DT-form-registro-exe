@@ -30,7 +30,7 @@ const Form = () => {
         console.log(response);
         setTimeout(async () => {
           await sendApprovedEmail (data);
-          console.log('Email approved sent')
+          //console.log('Email approved sent')
         }, 3000);
       } catch (error) {
         console.log(error)
@@ -51,10 +51,10 @@ const Form = () => {
         const filePath = await uploadFile(file);
         const payload = { ...data, cv: filePath };
         const response = await axios.post(`${URL}/api/candidatos`, payload);
-        console.log(response);
+        //console.log(response);
         setTimeout(async () => {
           await sendApprovedEmail(data);
-          console.log('Email approved sent')
+          //console.log('Email approved sent')
 
         }, 3000);
       } catch (error) {
@@ -91,15 +91,15 @@ const Form = () => {
     if (!file) return null;
 
     const timestamp = new Date().getTime();
-    console.log(timestamp)
+    //console.log(timestamp)
     const uniqueFileName = `${timestamp}_${file.name}`;
     const fileRef = ref(storage, `curriculums/${uniqueFileName}`);
 
     try {
       await uploadBytes(fileRef, file);
-      console.log('Archivo subido con éxito');
+      //console.log('Archivo subido con éxito');
       const downloadURL = await getDownloadURL(fileRef);
-      console.log(downloadURL)
+      //console.log(downloadURL)
       return downloadURL;
     } catch (error) {
       console.error('Error al subir el archivo:', error);
@@ -132,7 +132,7 @@ const Form = () => {
     const { nombre_candidato, email_candidato } = data;
     try {
       await axios.post(`${URL}/api/mailing/candidatos-approved`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
-      console.log('Correo de aceptación enviado');
+      //console.log('Correo de aceptación enviado');
     } catch (error) {
       console.error('Error al enviar el correo de rechazo:', error);
     }
@@ -145,7 +145,7 @@ const Form = () => {
     const nota_media = parseFloat(data.nota_media);
     data.edad = edad;
     data.nota_media = nota_media;
-    console.log(data);
+    //console.log(data);
 
     try {
       setTimeout(() => {
