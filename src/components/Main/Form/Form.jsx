@@ -11,7 +11,7 @@ const Form = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState(null);
-  const URL = /*import.meta.env.VITE_API_URL ||*/ 'http://localhost:3000';
+  const URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 
   //Función que establece si el candidato cumple con los criterios mínimos de admisión
@@ -28,6 +28,9 @@ const Form = () => {
         const payload = { ...data, cv: cvURL };
         const response = await axios.post(`${URL}/api/candidatos`, payload);
         console.log(response);
+        setTimeout(async () => {
+          await sendApprovedEmail (data);
+        }, 3000);
       } catch (error) {
         console.log(error)
         if (error.response && error.response.data.message) {
@@ -48,6 +51,9 @@ const Form = () => {
         const payload = { ...data, cv: filePath };
         const response = await axios.post(`${URL}/api/candidatos`, payload);
         console.log(response);
+        setTimeout(async () => {
+          await sendApprovedEmail(data);
+        }, 3000);
       } catch (error) {
         console.log(error)
         if (error.response && error.response.data.message) {
@@ -112,7 +118,18 @@ const Form = () => {
     const { nombre_candidato, email_candidato } = data;
     try {
       await axios.post(`${URL}/api/mailing/candidatos`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
-      console.log('Correo de rechazo enviado');
+      //console.log('Correo de rechazo enviado');
+    } catch (error) {
+      console.error('Error al enviar el correo de rechazo:', error);
+    }
+  };
+
+  //Función que gestiona el envío del email de aceptación de la solicitud
+  const sendApprovedEmail = async (data) => {
+    const { nombre_candidato, email_candidato } = data;
+    try {
+      await axios.post(`${URL}/api/mailing/candidatos-approved`, { email_candidato, subject: 'Solicitud Programa Empieza por Educar', nombre_candidato });
+      console.log('Correo de aceptación enviado');
     } catch (error) {
       console.error('Error al enviar el correo de rechazo:', error);
     }
