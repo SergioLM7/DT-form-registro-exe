@@ -30,6 +30,7 @@ const Form = () => {
         console.log(response);
         setTimeout(async () => {
           await sendApprovedEmail (data);
+          console.log('Email approved sent')
         }, 3000);
       } catch (error) {
         console.log(error)
@@ -53,6 +54,8 @@ const Form = () => {
         console.log(response);
         setTimeout(async () => {
           await sendApprovedEmail(data);
+          console.log('Email approved sent')
+
         }, 3000);
       } catch (error) {
         console.log(error)
